@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: urlshortener-postgres
+    environment:
+      POSTGRES_DB: urlshortener
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: urlshortener-app
+    depends_on:
+      - postgres
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/urlshortener
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: VerySecretKeyVerySecretKeyVerySecretKey123
+      JWT_EXPIRATION: 3600000
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:

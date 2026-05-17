@@ -1,19 +1,21 @@
 # URL Shortener
 
-REST API сервіс для скорочення URL-адрес із підтримкою JWT-аутентифікації, статистики переходів, PostgreSQL, Flyway, Swagger/OpenAPI, Docker та Docker Compose.
+REST API сервіс для скорочення URL-адрес, побудований на **Spring Boot**, із підтримкою **JWT-аутентифікації**, **PostgreSQL**, **Flyway**, **Swagger/OpenAPI**, **Docker**, **GitHub Actions CI** та **тестування**.
 
 ## Основний функціонал
 
 - реєстрація користувачів
-- аутентифікація через JWT
-- створення коротких URL
-- перегляд усіх створених URL
-- перегляд активних URL
-- перегляд конкретного URL за id
-- видалення URL
+- логін і отримання JWT токена
+- створення коротких посилань
+- перегляд усіх посилань поточного користувача
+- перегляд лише активних посилань
+- видалення посилань
 - redirect за short code
 - підрахунок кількості переходів
 - обробка прострочених посилань
+- Swagger/OpenAPI документація
+
+---
 
 ## Технологічний стек
 
@@ -24,13 +26,17 @@ REST API сервіс для скорочення URL-адрес із підтр
 - Spring Data JPA
 - PostgreSQL
 - Flyway
-- OpenAPI / Swagger
+- JWT
+- Swagger / springdoc-openapi
 - JUnit 5
 - Mockito
 - Testcontainers
 - Docker
 - Docker Compose
 - GitHub Actions
+- Gradle
+
+---
 
 ## Структура проєкту
 
@@ -40,51 +46,74 @@ REST API сервіс для скорочення URL-адрес із підтр
 src/main/java/com/example/urlshortener
 ├── AppLauncher.java
 ├── auth
-├── user
+├── common
 ├── link
-└── common
+└── user
 ```
 
-## Environment Variables
+---
 
-Для запуску застосунку використовуються такі змінні оточення:
+## Змінні оточення
 
-| Variable | Description | Example |
+Застосунок підтримує конфігурацію через environment variables.
+
+| Змінна | Опис | Значення за замовчуванням |
 |---|---|---|
-| DB_URL | URL підключення до PostgreSQL | jdbc:postgresql://localhost:5433/urlshortener |
-| DB_USERNAME | username PostgreSQL | postgres |
-| DB_PASSWORD | password PostgreSQL | postgres |
-| JWT_SECRET | секрет для підпису JWT | VerySecretKeyVerySecretKeyVerySecretKey123 |
-| JWT_EXPIRATION | час життя токена в мілісекундах | 3600000 |
+| `DB_URL` | URL підключення до PostgreSQL | `jdbc:postgresql://localhost:5433/urlshortener` |
+| `DB_USERNAME` | користувач PostgreSQL | `postgres` |
+| `DB_PASSWORD` | пароль PostgreSQL | `postgres` |
+| `JWT_SECRET` | секрет для підпису JWT | `VerySecretKeyVerySecretKeyVerySecretKey123` |
+| `JWT_EXPIRATION` | час життя токена в мілісекундах | `3600000` |
 
-## Запуск локально з IntelliJ IDEA
-
-### 1. Запустити PostgreSQL через Docker Compose
-```bash
-docker compose up -d postgres
-```
-
-### 2. Додати змінні оточення в Run/Debug Configuration
+Основна конфігурація застосунку розташована в:
 
 ```text
-DB_URL=jdbc:postgresql://localhost:5433/urlshortener
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-JWT_SECRET=VerySecretKeyVerySecretKeyVerySecretKey123
-JWT_EXPIRATION=3600000
+src/main/resources/application.yml
 ```
 
-### 3. Запустити клас `AppLauncher`
+---
 
 ## Запуск через Docker Compose
+
+### Запуск усього застосунку
 
 ```bash
 docker compose up --build
 ```
 
+Після запуску будуть доступні:
+
+- API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+
+---
+
+## Локальний запуск без Docker Compose для app
+
+### 1. Підняти PostgreSQL
+
+```bash
+docker compose up -d postgres
+```
+
+### 2. Запустити застосунок
+
+#### Windows
+```bash
+gradlew.bat bootRun
+```
+
+#### Linux / macOS
+```bash
+./gradlew bootRun
+```
+
 Після запуску:
-- application: `http://localhost:8080`
-- swagger: `http://localhost:8080/swagger-ui.html`
+
+- API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+
+---
 
 ## Swagger / OpenAPI
 
@@ -100,7 +129,26 @@ OpenAPI JSON:
 http://localhost:8080/v3/api-docs
 ```
 
-## Основні endpoints
+---
+
+## Аутентифікація
+
+Для доступу до захищених endpoint-ів потрібен JWT токен у заголовку:
+
+```text
+Authorization: Bearer <token>
+```
+
+Типовий сценарій роботи:
+
+1. Зареєструвати користувача через `POST /api/v1/auth/register`
+2. Увійти через `POST /api/v1/auth/login`
+3. Отримати JWT токен
+4. Передавати його у `Authorization` header для захищених endpoint-ів
+
+---
+
+## Основні endpoint-и
 
 ### Auth
 - `POST /api/v1/auth/register`
@@ -110,15 +158,17 @@ http://localhost:8080/v3/api-docs
 - `POST /api/v1/links`
 - `GET /api/v1/links`
 - `GET /api/v1/links/active`
-- `GET /api/v1/links/{id}`
 - `DELETE /api/v1/links/{id}`
 
 ### Redirect
 - `GET /r/{shortCode}`
 
+---
+
 ## Приклади запитів
 
-### Register
+### Реєстрація
+
 ```json
 {
   "username": "admin",
@@ -126,7 +176,8 @@ http://localhost:8080/v3/api-docs
 }
 ```
 
-### Login
+### Логін
+
 ```json
 {
   "username": "admin",
@@ -134,7 +185,8 @@ http://localhost:8080/v3/api-docs
 }
 ```
 
-### Create short link
+### Створення короткого посилання
+
 ```json
 {
   "originalUrl": "https://www.google.com",
@@ -142,34 +194,108 @@ http://localhost:8080/v3/api-docs
 }
 ```
 
-## Запуск тестів
+---
 
+## Тестування
+
+### Запуск усіх тестів
+
+#### Windows
 ```bash
-./gradlew test
+gradlew.bat clean test
 ```
 
-Для Windows:
+#### Linux / macOS
 ```bash
-gradlew.bat test
+./gradlew clean test
 ```
+
+---
+
+## Локальний запуск інтеграційних тестів
+
+За замовчуванням локально інтеграційні тести використовують PostgreSQL на `localhost:5433`.
+
+Перед запуском тестів підніми базу:
+
+```bash
+docker compose up -d postgres
+gradlew.bat clean test
+```
+
+---
+
+## Запуск інтеграційних тестів через Testcontainers
+
+Проєкт також підтримує запуск інтеграційних тестів через Testcontainers:
+
+```bash
+gradlew.bat clean test -DuseTestcontainers=true
+```
+
+> Примітка: на частині Windows + Docker Desktop конфігурацій Testcontainers можуть працювати нестабільно через особливості локального Docker environment.  
+> У такому випадку для локального запуску використовуй режим із PostgreSQL на `localhost:5433`.
+
+---
 
 ## Покриття тестами
 
-Після запуску тестів JaCoCo report буде доступний у:
+Для генерації JaCoCo звіту:
+
+#### Windows
+```bash
+gradlew.bat jacocoTestReport
+```
+
+#### Linux / macOS
+```bash
+./gradlew jacocoTestReport
+```
+
+HTML-звіт буде доступний у:
 
 ```text
 build/reports/jacoco/test/html/index.html
 ```
 
+---
+
 ## Міграції бази даних
 
-Flyway міграції розташовані в:
+Flyway міграції знаходяться в:
 
 ```text
 src/main/resources/db/migration
 ```
 
-## Примітки
+Міграції застосовуються автоматично під час старту застосунку.
+
+---
+
+## CI
+
+У проєкті налаштований GitHub Actions workflow:
+
+```text
+.github/workflows/ci.yml
+```
+
+CI виконує:
+- збірку проєкту
+- запуск тестів
+- перевірку покриття
+
+---
+
+## Особливості реалізації
+
+- посилання видаляються через **soft delete**
+- активними вважаються лише **непрострочені** і **невидалені** посилання
+- redirect endpoint доступний **без авторизації**
+- прострочені посилання повертають `410 Gone`
+- кількість переходів збільшується при переході за short link
+- користувач може видаляти лише власні посилання
+
 
 - Для доступу до захищених endpoints потрібен JWT token
 - Прострочені посилання повертають `410 Gone`

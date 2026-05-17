@@ -9,7 +9,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public abstract class AbstractIntegrationTest {
 
     private static final boolean USE_TESTCONTAINERS =
-            Boolean.parseBoolean(System.getProperty("useTestcontainers", "false"));
+            Boolean.parseBoolean(System.getenv().getOrDefault("USE_TESTCONTAINERS", "false"));
 
     private static final PostgreSQLContainer<?> postgres =
             new PostgreSQLContainer<>("postgres:16")
@@ -17,15 +17,13 @@ public abstract class AbstractIntegrationTest {
                     .withUsername("postgres")
                     .withPassword("postgres");
 
-    static {
-        if (USE_TESTCONTAINERS) {
-            postgres.start();
-        }
-    }
-
     @DynamicPropertySource
     static void overrideProperties(DynamicPropertyRegistry registry) {
         if (USE_TESTCONTAINERS) {
+            if (!postgres.isRunning()) {
+                postgres.start();
+            }
+
             registry.add("spring.datasource.url", postgres::getJdbcUrl);
             registry.add("spring.datasource.username", postgres::getUsername);
             registry.add("spring.datasource.password", postgres::getPassword);

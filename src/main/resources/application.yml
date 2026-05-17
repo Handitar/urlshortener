@@ -1,31 +1,24 @@
-version: '3.9'
+spring:
+  application:
+    name: urlshortener
 
-services:
-  postgres:
-    image: postgres:16
-    container_name: urlshortener-postgres
-    environment:
-      POSTGRES_DB: urlshortener
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/urlshortener}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
 
-  app:
-    build: .
-    container_name: urlshortener-app
-    depends_on:
-      - postgres
-    environment:
-      DB_URL: jdbc:postgresql://postgres:5432/urlshortener
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      JWT_SECRET: VerySecretKeyVerySecretKeyVerySecretKey123
-      JWT_EXPIRATION: 3600000
-    ports:
-      - "8080:8080"
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
 
-volumes:
-  postgres_data:
+  flyway:
+    enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  secret: ${JWT_SECRET:VerySecretKeyVerySecretKeyVerySecretKey123}
+  expiration: ${JWT_EXPIRATION:3600000}

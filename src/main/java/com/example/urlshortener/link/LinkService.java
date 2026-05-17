@@ -8,20 +8,21 @@ import com.example.urlshortener.link.dto.LinkResponse;
 import com.example.urlshortener.user.User;
 import com.example.urlshortener.user.UserRepository;
 import java.net.URI;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class LinkService {
 
-    private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int SHORT_CODE_LENGTH = 6;
 
     private final LinkRepository linkRepository;
     private final UserRepository userRepository;
+    private final SecureRandom random = new SecureRandom();
 
     public LinkService(LinkRepository linkRepository, UserRepository userRepository) {
         this.linkRepository = linkRepository;
@@ -91,7 +92,8 @@ public class LinkService {
             throw new GoneException("Link expired");
         }
 
-        link.setClickCount(link.getClickCount() + 1);
+        linkRepository.incrementClickCount(link.getId());
+
         return link.getOriginalUrl();
     }
 
@@ -107,13 +109,12 @@ public class LinkService {
     }
 
     private String generateUniqueCode() {
-        Random random = new Random();
         String code;
 
         do {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(SHORT_CODE_LENGTH);
             for (int i = 0; i < SHORT_CODE_LENGTH; i++) {
-                builder.append(CHARS.charAt(random.nextInt(CHARS.length())));
+                builder.append(ALPHABET.charAt(random.nextInt(ALPHABET.length())));
             }
             code = builder.toString();
         } while (linkRepository.existsByShortCode(code));

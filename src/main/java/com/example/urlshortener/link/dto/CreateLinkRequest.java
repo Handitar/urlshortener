@@ -1,12 +1,13 @@
 package com.example.urlshortener.link.dto;
-import jakarta.validation.constraints.NotNull;
+
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class CreateLinkRequest {
 
-    @NotBlank
+    @NotBlank(message = "Original URL is required")
     private String originalUrl;
 
     @NotNull(message = "Expiration time is required")
@@ -17,12 +18,12 @@ public class CreateLinkRequest {
         return originalUrl;
     }
 
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
-    }
-
     public void setOriginalUrl(String originalUrl) {
         this.originalUrl = originalUrl;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
     }
 
     public void setExpiresAt(LocalDateTime expiresAt) {

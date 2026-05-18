@@ -298,18 +298,16 @@ Authorization: Bearer <token>
 
 ## Тестування
 
-### Unit + Integration tests
-
-Для integration tests використовується **Testcontainers**, тому перед запуском тестів має бути доступний Docker.
+Для integration tests використовується Testcontainers, тому перед запуском тестів має бути доступний Docker.
 
 ### Windows
 ```bash
 gradlew.bat clean test
-```
 
 ### Linux / macOS
 ```bash
 ./gradlew clean test
+
 ```
 
 > Якщо Docker недоступний або Docker Desktop не запущений, integration tests не стартують.

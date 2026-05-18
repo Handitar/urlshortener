@@ -68,6 +68,20 @@ public class LinkService {
                 .toList();
     }
 
+    public LinkResponse getById(String username, Long id) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Link link = linkRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Link not found"));
+
+        if (!link.getUser().getId().equals(user.getId())) {
+            throw new BadRequestException("You can view only your own links");
+        }
+
+        return map(link);
+    }
+
     public void delete(String username, Long id) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));

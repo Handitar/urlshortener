@@ -14,6 +14,8 @@ public interface LinkRepository extends JpaRepository<Link, Long> {
 
     Optional<Link> findByShortCodeAndDeletedFalse(String shortCode);
 
+    Optional<Link> findByIdAndDeletedFalse(Long id);
+
     List<Link> findAllByUserIdAndDeletedFalse(Long userId);
 
     List<Link> findAllByUserIdAndDeletedFalseAndExpiresAtAfter(Long userId, LocalDateTime now);

@@ -34,6 +34,11 @@ public class LinkController {
         return linkService.getActive(principal.getName());
     }
 
+    @GetMapping("/{id}")
+    public LinkResponse getById(@PathVariable Long id, Principal principal) {
+        return linkService.getById(principal.getName(), id);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id, Principal principal) {

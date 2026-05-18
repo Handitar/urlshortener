@@ -303,15 +303,14 @@ Authorization: Bearer <token>
 ### Windows
 ```bash
 gradlew.bat clean test
+```
 
 ### Linux / macOS
 ```bash
 ./gradlew clean test
-
 ```
 
 > Якщо Docker недоступний або Docker Desktop не запущений, integration tests не стартують.
-
 ---
 
 ## Покриття тестами
